@@ -7,19 +7,42 @@ import random
 import logging
 import argparse
 
+import argparse
+import logging
+
+
 class SimulationConfig:
     """
-    Handles the argument passing around the code using a singleton pattern
+    Singleton class that handles argument passing and configuration settings
+    for the Manufacturing Facility Simulation.
     """
     _instance = None
 
     def __new__(cls):
+        """
+        Ensures only one instance of SimulationConfig exists.
+
+        Parameters:
+            cls (Type[SimulationConfig]): The class reference.
+
+        Returns:
+            SimulationConfig: The singleton instance.
+        """
+        """
+        Ensures only one instance of SimulationConfig exists.
+
+        Returns:
+            SimulationConfig: The singleton instance.
+        """
         if cls._instance is None:
             cls._instance = super(SimulationConfig, cls).__new__(cls)
             cls._instance._init_params()
         return cls._instance
 
     def _init_params(self):
+        """
+        Initializes simulation parameters by parsing command-line arguments.
+        """
         parser = argparse.ArgumentParser(description="Manufacturing Facility Simulation")
         parser.add_argument("--bin_capacity", type=int, default=25, help="Capacity of bins")
         parser.add_argument("--restock_devices_count", type=int, default=3, help="Number of restock devices")
@@ -32,8 +55,10 @@ class SimulationConfig:
         parser.add_argument("--simulation_time", type=int, default=5000, help="Total simulation time")
         parser.add_argument("--verbosity", type=int, default=100, help="Logging level")
         parser.add_argument("--iterations", type=int, default=1, help="Number of iterations")
-        parser.add_argument("--plot", type=bool, default=False, help="Graphic plots")
+        parser.add_argument("--plot", type=bool, default=False, help="Enable graphic plots")
+
         args = parser.parse_args()
+
         self.NUM_STATIONS = 6
         self.BIN_CAPACITY = args.bin_capacity
         self.RESTOCK_DEVICES = args.restock_devices_count
@@ -47,6 +72,7 @@ class SimulationConfig:
         self.STATION_FAILURE_PROBS = [0.02, 0.01, 0.05, 0.15, 0.07, 0.06]
         self.PLOTTING = args.plot
         self.ITERATIONS = args.iterations
+
         logging.basicConfig(level=args.verbosity, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
@@ -55,6 +81,12 @@ class ManufacturingFacility:
     Defines the model of a facility, and holds the informetion of the key performance metrics
     """
     def __init__(self, env):
+        """
+        Initializes the manufacturing facility with stations, bins, restock devices, and performance metrics.
+
+        Parameters:
+            env (simpy.Environment): The simulation environment.
+        """
         self.env = env
         self.stations = [simpy.Resource(env) for _ in range(SimulationConfig().NUM_STATIONS)]
         self.bins = [simpy.Container(env, SimulationConfig().BIN_CAPACITY, init=SimulationConfig().BIN_CAPACITY)
@@ -72,6 +104,12 @@ class ManufacturingFacility:
         self.bin_waiting_time = [0.0] * SimulationConfig().NUM_STATIONS
 
     def restock_bin(self, station_id):
+        """
+        Restocks a bin at the given station.
+
+        Parameters:
+            station_id (int): The ID of the station where the bin needs restocking.
+        """
         with self.restock_devices.request() as req:
             yield req
             start_time = self.env.now
@@ -83,6 +121,12 @@ class ManufacturingFacility:
             logging.debug(f"station {station_id + 1} restocked {self.env.now:.2f}")
 
     def perform_maintenance(self, station_id):
+        """
+        Performs maintenance on a station.
+
+        Parameters:
+            station_id (int): The ID of the station undergoing maintenance.
+        """
         with self.stations[station_id].request() as req:
             logging.debug(f"maintenance started at station {station_id + 1}  {self.env.now:.2f}")
             start_time = self.env.now
@@ -98,7 +142,16 @@ class ManufacturingFacility:
 
 def process_station(env, facility, product_id, station_id):
     """
-    Process a product through a station, using the facility, product_id, and the station id
+    Processes a product through a manufacturing station.
+
+    This function simulates a product moving through a manufacturing facility,
+    handling material retrieval, processing time, and maintenance checks.
+
+    Parameters:
+        env (simpy.Environment): The simulation environment.
+        facility (ManufacturingFacility): The manufacturing facility instance.
+        product_id (int): The unique identifier of the product being processed.
+        station_id (int): The index of the station where processing occurs.
     """
     bin = facility.bins[station_id]
     station = facility.stations[station_id]
@@ -139,7 +192,16 @@ def process_station(env, facility, product_id, station_id):
 
 def process_product(env, facility, product_id):
     """
-    Defines the workflow of a station inside of the facility
+    Simulates the workflow of a product moving through the facility.
+
+    This function models a sequential manufacturing process where a product
+    goes through a series of stations, with an optional reordering of two
+    phases and a final quality control step.
+
+    Parameters:
+        env (simpy.Environment): The simulation environment.
+        facility (ManufacturingFacility): The manufacturing facility instance.
+        product_id (int): The unique identifier of the product.
     """
     for i in range(3):
         yield env.process(process_station(env, facility, product_id, i))
@@ -172,7 +234,15 @@ def process_product(env, facility, product_id):
 
 def product_generator(env, facility):
     """
-    Passes a product through the pipeline
+    Generates and processes products in the facility.
+
+    This function continuously creates products and passes them through the
+    manufacturing pipeline. Each product is assigned a unique identifier
+    and enters the system at a fixed time interval.
+
+    Parameters:
+        env (simpy.Environment): The simulation environment.
+        facility (ManufacturingFacility): The manufacturing facility instance.
     """
     product_id = 0
     while True:
@@ -182,7 +252,13 @@ def product_generator(env, facility):
 
 def accident_monitor(env):
     """
-    Monitors accidents throughout the simulation
+    Monitors the simulation for random accidents.
+
+    This function periodically checks for accidents using a probabilistic model.
+    If an accident occurs, the simulation is halted.
+
+    Parameters:
+        env (simpy.Environment): The simulation environment.
     """
     while True:
         yield env.timeout(1)
@@ -191,5 +267,13 @@ def accident_monitor(env):
             env.process(stop_simulation(env))
 
 def stop_simulation(env):
-    """Stops the simulation by raising an exception."""
+    """
+    Halts the simulation due to an accident.
+
+    This function is triggered when an accident is detected by `accident_monitor`.
+    It stops the simulation by raising an exception.
+
+    Parameters:
+        env (simpy.Environment): The simulation environment.
+    """
     raise RuntimeError("Simulation halted due to an accident.")
