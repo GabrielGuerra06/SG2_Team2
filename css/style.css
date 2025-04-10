@@ -1,5 +1,3 @@
-
-
 /* Global resets */
 * {
 	box-sizing: border-box;
@@ -11,19 +9,23 @@
   body {
 	display: flex;
 	flex-direction: column;
-	height: 100vh;
-	width: 100vw;
+	height: 100%;
+	width: 100%;
 	background: #F7F8FC;
 	overflow-y: auto;
+	overflow-x: hidden;
+	align-items: center;
   }
   
   /* Top Navigation */
   .top-nav {
 	display: flex;
 	align-items: center;
+	width: 100%;
+	flex: none;
 	justify-content: space-between;
 	background: #fff;
-	padding: 0.5rem 1rem;
+	padding: 5px 10px;
 	border-bottom: 1px solid #E0E0E0;
 	flex-shrink: 0;
   }
@@ -53,6 +55,7 @@
   #sub-nav {
 	display: flex;
 	align-items: center;
+	justify-content: center;
   }
   #sub-nav span {
 	font-size: 1rem;
@@ -100,7 +103,8 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 20px;
-	margin: 20px;
+	padding: 20px;
+	width: 100%;
 	justify-content: space-between;
   }
   .card {
@@ -144,12 +148,19 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 20px;
-	margin: 20px;
-	justify-content: space-between;
+	padding: 20px;
+	width: 100%;
+	align-items: center;
+	justify-content: space-around;
   }
   .chart {
-	flex: 1;
+	flex: none;
 	min-width: 350px;
+	max-width: 650px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	align-items: center;
 	background: #fff;
 	border-radius: 8px;
 	box-shadow: 0 5px 15px rgba(0,0,0,0.05);
