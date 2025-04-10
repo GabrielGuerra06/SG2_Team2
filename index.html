@@ -1,75 +1,83 @@
+
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="description" content="">
-    <title>Company Product</title>
-    <!-- Custom styling -->
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8">
+  <meta name="description" content="">
+  <title>MyApp Dashboard (D3 v4 Compatible)</title>
+  <!-- Link to the custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-    <nav>
-        <ul>
-            <li><button class="primary-nav" data-period="day">Day</button></li>
-            <li><button class="primary-nav" data-period="week">Week</button></li>
-            <li><button class="primary-nav" data-period="month">Month</button></li>
-            <li><button class="primary-nav" data-period="year">Year</button></li>
-        </ul>
-    </nav>
-    <!-- Container for sub-navigation of instances -->
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <ul>
+      <li><button class="primary-nav" data-period="day">Day</button></li>
+      <li><button class="primary-nav" data-period="week">Week</button></li>
+      <li><button class="primary-nav" data-period="month">Month</button></li>
+      <li><button class="primary-nav" data-period="year">Year</button></li>
+    </ul>
+    <!-- Sub-navigation: Slider & Play Button -->
     <div id="sub-nav"></div>
+  </nav>
 
-    <div class="cards-container">
-        <div class="card" style="background-color: #ECD4FF;">
-            <div class="card-header">
-                <h2 id="card-title">Title</h2>
-                <p>Card 1 content</p>
-            </div>
-            <p class="card-content">Card 1 content</p>
-        </div>
-        <div class="card" style="background-color: #ACE7FF;">
-            <div class="card-header">
-                <h2>Card 2</h2>
-                <p>Card 2 content</p>
-            </div>
-            <p class="card-content">Card 2 content</p>
-        </div>
-        <div class="card" style="background-color: #FFD4D4;">
-            <div class="card-header">
-                <h2>Card 3</h2>
-                <p>Card 3 content</p>
-            </div>
-            <p class="card-content">Card 3 content</p>
-        </div>
-        <div class="card" style="background-color: #D4FFD4;">
-            <div class="card-header">
-                <h2>Card 4</h2>
-                <p>Card 4 content</p>
-            </div>
-            <p class="card-content">Card 4 content</p>
-        </div>
+  <!-- Dashboard Cards -->
+  <div class="cards-container">
+    <div class="card">
+      <div class="card-header">
+        <h2>Production Totals</h2>
+        <p>Accepted: <span class="highlight">0</span> | Rejected: <span class="highlight">0</span></p>
+      </div>
+      <p class="card-content">Rejection %: <span class="highlight">0%</span></p>
     </div>
-    <div class="charts-container">
-        <div class="chart">
-            <h2 class="chart-title">Products</h2>
-            <p class="chart-description">That is a chart, that shows the products of the company and if they are accepted or rejected</p>
-            <div id="chart-area"></div>
-        </div>
-        
-        <div id="prod-chart" class="chart"></div>
-        <div id="bar-chart" class="chart"></div>
-        <div id="gauge-chart" class="chart"></div>
-
+    <div class="card">
+      <div class="card-header">
+        <h2>Workstation Occupancy</h2>
+        <p>Avg Occupancy: <span class="highlight">0%</span></p>
+      </div>
+      <p class="card-content">Data aggregated per workstation</p>
     </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Production Time</h2>
+        <p>Average Time: <span class="highlight">0 s</span></p>
+      </div>
+      <p class="card-content">Performance metrics</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Delays & Safety</h2>
+        <p>Avg Delay: <span class="highlight">0</span> | Accidents: <span class="highlight">0</span></p>
+      </div>
+      <p class="card-content">Accident Rate: <span class="highlight">0</span></p>
+    </div>
+  </div>
 
-<!-- External JS libraries -->
-<script src="js/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script src="js/d3.min.js"></script>
-<!-- Custom JS -->
-<script src="js/main.js"></script>
+  <!-- Charts Container -->
+  <div class="charts-container">
+    <!-- Donut Chart -->
+    <div id="chart-area" class="chart">
+      <h3 class="chart-title">Accepted vs. Rejected Products</h3>
+    </div>
+    <!-- Circle Chart for Production Time -->
+    <div id="prod-chart" class="chart">
+      <h3 class="chart-title">Average Production Time per Workstation</h3>
+    </div>
+    <!-- Bar Chart -->
+    <div id="bar-chart" class="chart">
+      <h3 class="chart-title">Workstation Occupancy (%)</h3>
+    </div>
+    <!-- Gauge Chart -->
+    <div id="gauge-chart" class="chart">
+      <h3 class="chart-title">Production Rejection Percentage</h3>
+    </div>
+  </div>
 
+  <!-- IMPORTANT: Load D3 v4 specifically. For example: -->
+  <!-- <script src="js/d3.v4.min.js"></script> -->
+  <script src="js/d3.min.js"></script> <!-- Make sure this is D3 v4! -->
+
+  <!-- Main JavaScript file -->
+  <script src="js/main.js"></script>
 </body>
 </html>
