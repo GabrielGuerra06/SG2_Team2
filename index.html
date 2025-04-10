@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <title>Company Product</title>
+    <!-- Custom styling -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li><button class="primary-nav" data-period="day">Day</button></li>
+            <li><button class="primary-nav" data-period="week">Week</button></li>
+            <li><button class="primary-nav" data-period="month">Month</button></li>
+            <li><button class="primary-nav" data-period="year">Year</button></li>
+        </ul>
+    </nav>
+    <!-- Container for sub-navigation of instances -->
+    <div id="sub-nav"></div>
+
+    <div class="cards-container">
+        <div class="card" style="background-color: #ECD4FF;">
+            <div class="card-header">
+                <h2 id="card-title">Title</h2>
+                <p>Card 1 content</p>
+            </div>
+            <p class="card-content">Card 1 content</p>
+        </div>
+        <div class="card" style="background-color: #ACE7FF;">
+            <div class="card-header">
+                <h2>Card 2</h2>
+                <p>Card 2 content</p>
+            </div>
+            <p class="card-content">Card 2 content</p>
+        </div>
+        <div class="card" style="background-color: #FFD4D4;">
+            <div class="card-header">
+                <h2>Card 3</h2>
+                <p>Card 3 content</p>
+            </div>
+            <p class="card-content">Card 3 content</p>
+        </div>
+        <div class="card" style="background-color: #D4FFD4;">
+            <div class="card-header">
+                <h2>Card 4</h2>
+                <p>Card 4 content</p>
+            </div>
+            <p class="card-content">Card 4 content</p>
+        </div>
+    </div>
+    <div class="charts-container">
+        <div class="chart">
+            <h2 class="chart-title">Products</h2>
+            <p class="chart-description">That is a chart, that shows the products of the company and if they are accepted or rejected</p>
+            <div id="chart-area"></div>
+        </div>
+        
+        <div id="prod-chart" class="chart"></div>
+        <div id="bar-chart" class="chart"></div>
+        <div id="gauge-chart" class="chart"></div>
+
+    </div>
+
+<!-- External JS libraries -->
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
+<script src="js/d3.min.js"></script>
+<!-- Custom JS -->
+<script src="js/main.js"></script>
+
+</body>
+</html>
