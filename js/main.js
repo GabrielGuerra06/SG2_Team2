@@ -2,7 +2,8 @@
     Adapted from Mike Bostock at bl.ocks.org
     https://bl.ocks.org/mbostock/5682158
 
-    Modified to include a D3 slider (with tooltip) and a Play button for dynamic instance updates.
+    Modified to include a D3 slider (with tooltip) and a Play button for dynamic instance updates,
+    plus titles on each graph and dynamic updates of key aggregated data in the dashboard cards.
 */
 
 // Global configuration for time periods (in days).
@@ -21,20 +22,17 @@ var playInterval; // Interval for play button animation.
 // ---------------------------------------------------------------------------
 function aggregateData(daysArray) {
     var aggregated = {};
-
     aggregated.accepted_products = d3.sum(daysArray, d => d.accepted_products);
     aggregated.rejected_products = d3.sum(daysArray, d => d.rejected_products);
     aggregated.total_products = aggregated.accepted_products + aggregated.rejected_products;
     aggregated.production_rejection_percentage = (aggregated.rejected_products / aggregated.total_products) * 100;
 
-    // Aggregate occupancy per workstation.
     var numWS = daysArray[0].occupancy_per_workstation.length;
     aggregated.occupancy_per_workstation = [];
     for (var i = 0; i < numWS; i++) {
         aggregated.occupancy_per_workstation[i] = d3.mean(daysArray, d => d.occupancy_per_workstation[i]);
     }
 
-    // Aggregate production time per workstation.
     var numWS2 = daysArray[0].avg_production_time.length;
     aggregated.avg_production_time = [];
     for (var i = 0; i < numWS2; i++) {
@@ -79,15 +77,62 @@ function aggregateData(daysArray) {
 }
 
 // ---------------------------------------------------------------------------
-// Chart Rendering Functions (unchanged from previous code)
+// Dashboard Card Update: Update titles and content of key card elements
+// ---------------------------------------------------------------------------
+function updateCards(aggregatedData) {
+    // Card 1: Production Totals
+    d3.select(".card:nth-child(1) .card-header h2")
+      .text("Production Totals");
+    d3.select(".card:nth-child(1) .card-header p")
+      .text("Accepted: " + aggregatedData.accepted_products +
+            " | Rejected: " + aggregatedData.rejected_products);
+    d3.select(".card:nth-child(1) .card-content")
+      .text("Rejection %: " + aggregatedData.production_rejection_percentage.toFixed(2) + "%");
+
+    // Card 2: Workstation Occupancy (averaged)
+    d3.select(".card:nth-child(2) .card-header h2")
+      .text("Workstation Occupancy");
+    // Average occupancy across workstations (converted to %)
+    var avgOccupancy = d3.mean(aggregatedData.occupancy_per_workstation) * 100;
+    d3.select(".card:nth-child(2) .card-header p")
+      .text("Avg Occupancy: " + avgOccupancy.toFixed(2) + "%");
+    d3.select(".card:nth-child(2) .card-content")
+      .text("Data from each workstation aggregated.");
+
+    // Card 3: Average Production Time
+    d3.select(".card:nth-child(3) .card-header h2")
+      .text("Production Time");
+    var avgProdTime = d3.mean(aggregatedData.avg_production_time);
+    d3.select(".card:nth-child(3) .card-header p")
+      .text("Average Time: " + avgProdTime.toFixed(2) + " s");
+    d3.select(".card:nth-child(3) .card-content")
+      .text("Performance metrics per workstation.");
+
+    // Card 4: Delays & Accidents
+    d3.select(".card:nth-child(4) .card-header h2")
+      .text("Delays & Safety");
+    d3.select(".card:nth-child(4) .card-header p")
+      .text("Avg Delay: " + aggregatedData.avg_delay_time.toFixed(2) +
+            " | Accidents: " + aggregatedData.accidents);
+    d3.select(".card:nth-child(4) .card-content")
+      .text("Accident Rate: " + aggregatedData.accident_rate.toFixed(2));
+}
+
+// ---------------------------------------------------------------------------
+// Chart Rendering Functions with Titles
 // ---------------------------------------------------------------------------
 function renderDonutChart(simulationRecord, tooltip) {
+    var container = d3.select("#chart-area");
+    // Insert chart title.
+    container.insert("h3", ":first-child")
+             .text("Accepted vs. Rejected Products");
+
     var margin = { top: 20, right: 20, bottom: 20, left: 20 },
         width = 600 - margin.left - margin.right,
         height = 400 - margin.top - margin.bottom,
         radius = Math.min(height, width) / 2;
     
-    var svg = d3.select("#chart-area").append("svg")
+    var svg = container.append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom);
     
@@ -131,6 +176,10 @@ function renderDonutChart(simulationRecord, tooltip) {
 }
 
 function renderBarChart(simulationRecord, tooltip) {
+    var container = d3.select("#bar-chart");
+    container.insert("h3", ":first-child")
+             .text("Workstation Occupancy (%)");
+
     var occupancy = simulationRecord.occupancy_per_workstation;
     var barData = occupancy.map(function(d, i) {
       return {
@@ -143,7 +192,7 @@ function renderBarChart(simulationRecord, tooltip) {
         barWidth = 800 - barMargin.left - barMargin.right,
         barHeight = 400 - barMargin.top - barMargin.bottom;
     
-    var barSvg = d3.select("#bar-chart").append("svg")
+    var barSvg = container.append("svg")
         .attr("width", barWidth + barMargin.left + barMargin.right)
         .attr("height", barHeight + barMargin.top + barMargin.bottom)
       .append("g")
@@ -189,12 +238,16 @@ function renderBarChart(simulationRecord, tooltip) {
 }
 
 function renderGaugeChart(simulationRecord, tooltip) {
+    var container = d3.select("#gauge-chart");
+    container.insert("h3", ":first-child")
+             .text("Production Rejection Percentage");
+    
     var rejectionPct = simulationRecord.production_rejection_percentage;
     var gaugeMargin = { top: 20, right: 20, bottom: 20, left: 20 },
         gaugeWidth = 300 - gaugeMargin.left - gaugeMargin.right,
         gaugeHeight = 150 - gaugeMargin.top - gaugeMargin.bottom;
     
-    var gaugeSvg = d3.select("#gauge-chart").append("svg")
+    var gaugeSvg = container.append("svg")
         .attr("width", gaugeWidth + gaugeMargin.left + gaugeMargin.right)
         .attr("height", gaugeHeight + gaugeMargin.top + gaugeMargin.bottom)
       .append("g")
@@ -248,6 +301,10 @@ function renderGaugeChart(simulationRecord, tooltip) {
 }
 
 function renderCircleGraph(simulationRecord, tooltip) {
+    var container = d3.select("#prod-chart");
+    container.insert("h3", ":first-child")
+             .text("Average Production Time per Workstation");
+    
     var avgProdTimes = simulationRecord.avg_production_time;
     var prodTimeData = avgProdTimes.map(function(d, i) {
       return {
@@ -260,7 +317,7 @@ function renderCircleGraph(simulationRecord, tooltip) {
     var circWidth = 400, circHeight = 400,
         circInnerRadius = 50, circOuterRadius = 150;
     
-    var circSvg = d3.select("#prod-chart").append("svg")
+    var circSvg = container.append("svg")
       .attr("width", circWidth)
       .attr("height", circHeight)
       .append("g")
@@ -307,13 +364,17 @@ function renderCircleGraph(simulationRecord, tooltip) {
       });
 }
 
+// ---------------------------------------------------------------------------
+// Update Charts and Dashboard Cards
+// ---------------------------------------------------------------------------
 function updateCharts(simulationRecord) {
-    // Remove previous chart SVGs.
+    // Clear previous chart SVGs.
     d3.select("#chart-area").selectAll("*").remove();
     d3.select("#bar-chart").selectAll("*").remove();
     d3.select("#gauge-chart").selectAll("*").remove();
     d3.select("#prod-chart").selectAll("*").remove();
     
+    // Create a tooltip.
     var tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
@@ -322,6 +383,9 @@ function updateCharts(simulationRecord) {
     renderBarChart(simulationRecord, tooltip);
     renderGaugeChart(simulationRecord, tooltip);
     renderCircleGraph(simulationRecord, tooltip);
+    
+    // Also update the dashboard cards with key aggregated data.
+    updateCards(simulationRecord);
 }
 
 // ---------------------------------------------------------------------------
@@ -334,13 +398,13 @@ function renderSlider(period) {
     var totalInstances = Math.floor(allData.length / periodDays);
     if (allData.length % periodDays !== 0) totalInstances++;
 
-    // Create a label for the slider.
+    // Add a label for the slider.
     d3.select("#sub-nav")
       .append("span")
       .attr("id", "slider-label")
       .text(period.charAt(0).toUpperCase() + period.slice(1) + " instance:");
     
-    // Create the slider using an input element.
+    // Create the slider.
     var slider = d3.select("#sub-nav")
       .append("input")
       .attr("id", "instance-slider")
@@ -348,7 +412,7 @@ function renderSlider(period) {
       .attr("min", 0)
       .attr("max", totalInstances - 1)
       .attr("step", 1)
-      .attr("value", totalInstances - 1)  // Default to the most recent instance.
+      .attr("value", totalInstances - 1)  // Default to most recent.
       .style("margin", "0 10px")
       .on("input", function() {
           var instance = +this.value;
@@ -361,7 +425,6 @@ function renderSlider(period) {
       .attr("id", "play-button")
       .text("Play")
       .on("click", function() {
-          // If already playing, stop.
           if (playInterval) {
               clearInterval(playInterval);
               playInterval = null;
@@ -377,7 +440,7 @@ function renderSlider(period) {
                   }
                   d3.select("#instance-slider").property("value", current);
                   updateForInstance(period, current);
-              }, 1000); // Adjust the delay (in ms) between updates as needed.
+              }, 1000);
           }
       });
 }
@@ -387,7 +450,6 @@ function renderSlider(period) {
 // ---------------------------------------------------------------------------
 function updateForInstance(period, instance) {
     var periodDays = daysCount[period];
-    // Slice the data based on instance index.
     var start = instance * periodDays;
     var end = (instance + 1) * periodDays;
     var sliceData = allData.slice(start, end);
@@ -401,12 +463,10 @@ function updateForInstance(period, instance) {
 function setUpPrimaryNav() {
     d3.selectAll(".primary-nav").on("click", function() {
        var period = d3.select(this).attr("data-period");
-       // Render the slider (and play button) for this period.
        renderSlider(period);
        var periodDays = daysCount[period];
        var totalInstances = Math.floor(allData.length / periodDays);
        if (allData.length % periodDays !== 0) totalInstances++;
-       // Default to the most recent instance.
        updateForInstance(period, totalInstances - 1);
     });
 }
@@ -418,14 +478,13 @@ function main() {
     d3.json("data/test.json").then(function(data) {
         allData = data;
         setUpPrimaryNav();
-        // Trigger default: select "day" period.
         d3.select(".primary-nav[data-period='day']").dispatch("click");
     }).catch(function(error) {
         console.error("Error al cargar el JSON:", error);
     });
 }
 
-// Optional helper functions (unchanged).
+// Optional helper functions (unchanged)
 function key(d) { return d.data.region; }
 function findNeighborArc(i, data0, data1, key) {
     var d;
