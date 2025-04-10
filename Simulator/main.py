@@ -59,7 +59,7 @@ def run_simulation():
         # Down time is recorded from maintenance downtime.
         down_time = facility.maintenance_downtime[i]
         # Waiting for restock (or idle) is what remains.
-        waiting = actual_time - (operational + down_time)
+        waiting = actual_time - (operational)
         workstation_status.append({
             "operational": operational,
             "downtime": down_time,
