@@ -212,3 +212,9 @@
 	text-anchor: middle;
   }
   
+  #time-indicator {
+	font-size: 1.1rem;
+	text-align: center;
+	flex-grow: 1;
+  }
+  

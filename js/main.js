@@ -1,43 +1,31 @@
-// -------------------------------------------------
-// Global Variables and Configuration
-// -------------------------------------------------
-let allData = [];         // Loaded JSON data
+let allData = [];         
 let currentPeriod = "day";
 let playInterval;
 const daysCount = { day: 1, week: 7, month: 30, year: 365 };
 
-// Global selections for primary charts
 let donutSvg, donutG;
 let barSvg, barG;
 let barStatausSvg, barStatusG;
-let barAccidentsSvg, barAccidentsG;
 let gaugeSvg, gaugeG;
 let circleSvg, circleG;
 let arcGenerator, colorScaleCircle;
 
-
-// Create a single tooltip div
 const tooltip = d3.select(".charts-container")
   .append("div")
   .attr("class", "tooltip")
   .style("opacity", 0);
 
-// -------------------------------------------------
-// Main: Load Data and Initialize (using d3 v5 Promises)
-// -------------------------------------------------
 function main() {
   d3.json("data/simulation_results_20250410_093155.json")
     .then(data => {
       allData = data;
       setUpPrimaryNav();
-      // Initialize the primary charts only once:
       initDonutChart();
       initBarChart();
       initGaugeChart();
       initCircleChart();
       initBarStatus();
       initExtraCharts();
-      // Trigger default period ("day"):
       d3.select(".primary-nav[data-period='day']").dispatch("click");
     })
     .catch(error => {
@@ -46,9 +34,6 @@ function main() {
 }
 main();
 
-// -------------------------------------------------
-// Navigation and Slider
-// -------------------------------------------------
 function setUpPrimaryNav() {
   d3.selectAll(".primary-nav").on("click", function () {
     currentPeriod = d3.select(this).attr("data-period");
@@ -64,12 +49,10 @@ function renderSlider(period) {
   const periodDays = daysCount[period];
   const totalInstances = Math.ceil(allData.length / periodDays);
 
-  // Label:
   d3.select("#sub-nav")
     .append("span")
     .text(period.charAt(0).toUpperCase() + period.slice(1) + " instance:");
 
-  // Slider:
   d3.select("#sub-nav")
     .append("input")
     .attr("type", "range")
@@ -81,7 +64,6 @@ function renderSlider(period) {
       updateForInstance(period, +this.value);
     });
 
-  // Play Button:
   d3.select("#sub-nav")
     .append("button")
     .text("Play")
@@ -110,11 +92,12 @@ function updateForInstance(period, instance) {
   const sliceData = allData.slice(start, end);
   const aggregatedData = aggregateData(sliceData);
   updateCharts(aggregatedData, sliceData);
+
+  // Update the indicator in the navbar using 1-indexing for readability
+  d3.select("#time-indicator")
+    .html(`<b>${period.charAt(0).toUpperCase() + period.slice(1)} ${instance + 1}</b>`);
 }
 
-// -------------------------------------------------
-// Data Aggregation (including extra metrics)
-// -------------------------------------------------
 function aggregateData(daysArray) {
   const aggregated = {};
   aggregated.accepted_products = d3.sum(daysArray, d => d.accepted_products);
@@ -123,7 +106,6 @@ function aggregateData(daysArray) {
   aggregated.production_rejection_percentage =
     (aggregated.rejected_products / aggregated.total_products) * 100;
 
-  // Average per-workstation values:
   const numWS = daysArray[0].occupancy_per_workstation.length;
   aggregated.occupancy_per_workstation = [];
   for (let i = 0; i < numWS; i++) {
@@ -135,7 +117,6 @@ function aggregateData(daysArray) {
     aggregated.avg_production_time[i] = d3.mean(daysArray, d => d.avg_production_time[i]);
   }
 
-  // Extra metrics:
   aggregated.avg_delay_time = d3.mean(daysArray, d => d.avg_delay_time);
   aggregated.accident_rate = d3.mean(daysArray, d => d.accident_rate);
   aggregated.supplier_occupancy = d3.mean(daysArray, d => d.supplier_occupancy);
@@ -173,9 +154,6 @@ function aggregateData(daysArray) {
   return aggregated;
 }
 
-// -------------------------------------------------
-// Update All Charts (Primary + Extra)
-// -------------------------------------------------
 function updateCharts(aggregatedData, filteredData) {
   updateDonutChart(aggregatedData);
   updateBarChart(aggregatedData);
@@ -186,28 +164,21 @@ function updateCharts(aggregatedData, filteredData) {
   updateExtraCharts(filteredData);
 }
 
-// -------------------------------------------------
-// Update Dashboard Cards
-// -------------------------------------------------
 function updateCards(aggregatedData) {
-  // Card 1: Production Totals
   d3.select(".card:nth-child(1) .card-header p")
     .html("Accepted: <span class='highlight'>" + aggregatedData.accepted_products +
           "</span> | Rejected: <span class='highlight'>" + aggregatedData.rejected_products + "</span>");
   d3.select(".card:nth-child(1) .card-content")
     .html("Rejection %: <span class='highlight'>" + aggregatedData.production_rejection_percentage.toFixed(2) + "%</span>");
 
-  // Card 2: Workstation Occupancy
   const avgOccupancy = d3.mean(aggregatedData.occupancy_per_workstation) * 100;
   d3.select(".card:nth-child(2) .card-header p")
     .html("Avg Occupancy: <span class='highlight'>" + avgOccupancy.toFixed(2) + "%</span>");
 
-  // Card 3: Production Time
   const avgProdTime = d3.mean(aggregatedData.avg_production_time);
   d3.select(".card:nth-child(3) .card-header p")
     .html("Average Time: <span class='highlight'>" + avgProdTime.toFixed(2) + " s</span>");
 
-  // Card 4: Delays & Safety
   d3.select(".card:nth-child(4) .card-header p")
     .html(
       "Avg Delay: <span class=\"highlight\">" + 
@@ -231,11 +202,6 @@ function updateCards(aggregatedData) {
     );
 }
 
-// -------------------------------------------------
-// PRIMARY CHARTS
-// -------------------------------------------------
-
-// --- Donut Chart: Accepted vs. Rejected Products ---
 function initDonutChart() {
   const width = 400, height = 300;
   donutSvg = d3.select("#chart-area")
@@ -244,6 +210,11 @@ function initDonutChart() {
     .attr("height", height);
   donutG = donutSvg.append("g")
     .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+  // Add legend group for Donut Chart
+  donutSvg.append("g")
+    .attr("class", "donut-legend")
+    .attr("transform", `translate(${10}, ${height - 40})`);
 }
 
 function updateDonutChart(data) {
@@ -294,9 +265,27 @@ function updateDonutChart(data) {
     .on("mouseout", () => {
       tooltip.transition().duration(500).style("opacity", 0);
     });
+
+  // Update legend for Donut Chart
+  const legend = donutSvg.select(".donut-legend").selectAll("g")
+      .data(pieData);
+  const legendEnter = legend.enter().append("g")
+      .attr("transform", (d, i) => `translate(${i * 100}, 0)`);
+  
+  legendEnter.append("rect")
+      .attr("width", 15)
+      .attr("height", 15)
+      .attr("fill", d => color(d.key));
+  
+  legendEnter.append("text")
+      .attr("x", 20)
+      .attr("y", 12)
+      .text(d => d.key)
+      .style("font-size", "12px");
+  
+  legend.exit().remove();
 }
 
-// --- Bar Chart: Workstation Occupancy ---
 function initBarChart() {
   const margin = { top: 20, right: 20, bottom: 40, left: 50 };
   const width = 400 - margin.left - margin.right;
@@ -379,7 +368,6 @@ function updateBarChart(data) {
     .attr("height", d => height - yScale(d.occupancy));
 }
 
-// --- Gauge Chart: Production Rejection Percentage ---
 function initGaugeChart() {
   const width = 400, height = 300;
   gaugeSvg = d3.select("#gauge-chart")
@@ -460,70 +448,61 @@ function updateGaugeChart(data) {
     });
 }
 
-// --- Circle Chart: Average Production Time per Workstation ---
 function initCircleChart() {
   const width = 400, height = 400;
   circleSvg = d3.select("#prod-chart")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
-
   circleG = circleSvg.append("g")
     .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
   colorScaleCircle = d3.scaleOrdinal(d3.schemeCategory10);
   arcGenerator = d3.arc();
+
+  // Add legend group for Circle Chart
+  circleSvg.append("g")
+    .attr("class", "circle-legend")
+    .attr("transform", `translate(${width - 120},20)`);
 }
 
 function updateCircleChart(simulationRecord) {
-  // Extract or compute data
   var avgTimes = simulationRecord.avg_production_time || [];
   var data = avgTimes.map(function(time, i) {
     return {
-      workstation: "WS-" + (i + 1),
+      workstation: "W" + (i + 1),
       time: time
     };
   });
 
-  // Chart geometry constants
   var innerR = 50;
-  var maxR = 150;         // max possible radius
-  var minThickness = 10;  // <--- Our forced minimum thickness
-
-  // Scale to map production times to outer radius
+  var maxR = 150;
+  var minThickness = 10;  
   var minTime = d3.min(data, d => d.time) || 0;
   var maxTime = d3.max(data, d => d.time) || 1;
   var rScale = d3.scaleLinear()
     .domain([minTime, maxTime])
     .range([innerR, maxR]);
 
-  // Each arc is a segment around the circle
   var totalSegments = data.length;
   var angleStep = totalSegments ? (2 * Math.PI / totalSegments) : 0;
 
-  // Helper to clamp the outer radius so arcs are always visible
   function getOuterRadius(time) {
     var scaled = rScale(time);
-    // If scaled is too close to innerR, ensure at least "minThickness"
     if (scaled < innerR + minThickness) {
       return innerR + minThickness;
     }
     return scaled;
   }
 
-  // Join data
   var arcs = circleG.selectAll("path.circle-arc")
     .data(data, d => d.workstation);
 
-  // EXIT
   arcs.exit()
     .transition().duration(500)
     .attrTween("d", function(d, i) {
-      // Start from the current outer radius,
-      // go down to the innerR (arc disappears).
       var r0 = getOuterRadius(d.time);
       var rInterpolate = d3.interpolate(r0, innerR);
-
       return function(t) {
         return arcGenerator
           .innerRadius(innerR)
@@ -534,12 +513,10 @@ function updateCircleChart(simulationRecord) {
     })
     .remove();
 
-  // ENTER
   var arcsEnter = arcs.enter().append("path")
     .attr("class", "circle-arc")
     .attr("fill", (d, i) => colorScaleCircle(i))
     .each(function(d) {
-      // Store the "old" radius as just innerR
       this._oldRadius = innerR;
     })
     .on("mouseover", function(d) {
@@ -552,20 +529,14 @@ function updateCircleChart(simulationRecord) {
       tooltip.transition().duration(500).style("opacity", 0);
     });
 
-  // MERGE
   arcs = arcsEnter.merge(arcs);
 
-  // UPDATE
   arcs.transition().duration(1000)
     .attrTween("d", function(d, i) {
-      // Animate from oldRadius to new clamped outer radius
       var oldRadius = this._oldRadius || innerR;
       var newRadius = getOuterRadius(d.time);
       var radiusInterpolate = d3.interpolate(oldRadius, newRadius);
-
-      // Save new radius for next transition
       this._oldRadius = newRadius;
-
       return function(t) {
         return arcGenerator
           .innerRadius(innerR)
@@ -574,68 +545,26 @@ function updateCircleChart(simulationRecord) {
           .endAngle((i + 1) * angleStep)();
       };
     });
+
+  // Update legend for Circle Chart
+  const legend = circleSvg.select(".circle-legend").selectAll("g")
+      .data(data);
+  const legendEnter = legend.enter().append("g")
+      .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+      
+  legendEnter.append("rect")
+      .attr("width", 15)
+      .attr("height", 15)
+      .attr("fill", (d, i) => colorScaleCircle(i));
+  
+  legendEnter.append("text")
+      .attr("x", 20)
+      .attr("y", 12)
+      .text(d => d.workstation)
+      .style("font-size", "12px");
+      
+  legend.exit().remove();
 }
-
-
-
-// -------------------------------------------------
-// EXTRA CHARTS (Additional Graphs)
-// // -------------------------------------------------
-// function updateExtraCharts(filteredData) {
-//   // Clear extra charts containers:
-//   d3.select("#accident-rate").selectAll("svg").remove();
-//   d3.select("#workstation-status").selectAll("svg").remove();
-//   d3.select("#bottleneck-waiting-times").selectAll("svg").remove();
-//   d3.select("#supplier-metrics").selectAll("svg").remove();
-
-//   const newChartMargin = { top: 20, right: 50, bottom: 20, left: 50 },
-//         newChartWidth = 650 - newChartMargin.left - newChartMargin.right,
-//         newChartHeight = 400 - newChartMargin.top - newChartMargin.bottom;
-
-
-//   // 2. Accident Rate (Column Chart)
-//   const accidentRates = filteredData.map(d => d.accident_rate);
-//   const svg2 = d3.select("#accident-rate").append("svg")
-//       .attr("width", newChartWidth + newChartMargin.left + newChartMargin.right)
-//       .attr("height", newChartHeight + newChartMargin.top + newChartMargin.bottom)
-//     .append("g")
-//       .attr("transform", `translate(${newChartMargin.left}, ${newChartMargin.top})`);
-//   drawColumnChart(accidentRates, svg2, "Accident Rate per Day (%)", "#FFA07A", newChartWidth, newChartHeight);
-
-//   // 3. Workstation Status (Stacked Bar Chart)
-//   const lastIteration = filteredData[filteredData.length - 1];
-//   const workstationStatusData = lastIteration.workstation_status.map((d, i) => ({
-//       workstation: "Workstation " + (i + 1),
-//       operational: d.operational,
-//       downtime: d.downtime,
-//       waiting_for_restock: d.waiting_for_restock
-//   }));
-//   const svg3 = d3.select("#workstation-status").append("svg")
-//       .attr("width", newChartWidth + newChartMargin.left + newChartMargin.right)
-//       .attr("height", newChartHeight + newChartMargin.top + newChartMargin.bottom)
-//     .append("g")
-//       .attr("transform", `translate(${newChartMargin.left}, ${newChartMargin.top})`);
-//   drawWorkstationStatusChart(workstationStatusData, svg3, "Workstation Status Distribution", newChartWidth, newChartHeight);
-
-//   // 4. Bottleneck Waiting Times (Line Chart)
-//   const waitingTimesData = filteredData.map(d => d.bottleneck_workstations.waiting_times);
-//   const svg4 = d3.select("#bottleneck-waiting-times").append("svg")
-//       .attr("width", newChartWidth + newChartMargin.left + newChartMargin.right)
-//       .attr("height", newChartHeight + newChartMargin.top + newChartMargin.bottom)
-//     .append("g")
-//       .attr("transform", `translate(${newChartMargin.left}, ${newChartMargin.top})`);
-//   drawWaitingTimesLineChart(waitingTimesData, svg4, "Waiting Times per Station Across Iterations", newChartWidth, newChartHeight);
-
-//   // 5. Supplier Metrics (Composite Chart)
-//   const supplierOccupancy = filteredData.map(d => d.supplier_occupancy);
-//   const avgFixTimes = filteredData.map(d => d.avg_fix_time);
-//   const svg5 = d3.select("#supplier-metrics").append("svg")
-//       .attr("width", newChartWidth + newChartMargin.left + newChartMargin.right)
-//       .attr("height", newChartHeight + newChartMargin.top + newChartMargin.bottom)
-//     .append("g")
-//       .attr("transform", `translate(${newChartMargin.left}, ${newChartMargin.top})`);
-//   drawSupplierMetricsChart(supplierOccupancy, avgFixTimes, svg5, "Supplier Metrics", newChartWidth, newChartHeight);
-// }
 
 function initBarStatus() {
   const width = 600, height = 300;
@@ -645,11 +574,9 @@ function initBarStatus() {
     .attr("height", height);
 
   barStatusG = barStatausSvg.append("g")
-    .attr("transform",  `translate(${40 }, ${20})`);
+    .attr("transform", `translate(${40}, ${20})`);
 }
-// -------------------------------------------------
-// Extra Chart Drawing Functions
-// -------------------------------------------------
+
 function updateBarStatus(values) {
   const chartData = values.map((value, index) => ({ index: index + 1, value: value }));
   const margin = { top: 20, right: 20, bottom: 30, left: 40 };
@@ -664,15 +591,15 @@ function updateBarStatus(values) {
       .nice()
       .range([chartHeight, 0]);
   
-  barStatusG.selectAll(".x axis").remove();
-  barStatusG.selectAll(".y axis").remove();
+  barStatusG.selectAll(".x.axis").remove();
+  barStatusG.selectAll(".y.axis").remove();
   barStatusG.append("g")
       .attr("class", "x axis")
       .attr("transform", `translate(0, ${chartHeight})`)
       .call(d3.axisBottom(x).tickSize(0));
   barStatusG.append("g")
       .attr("class", "y axis")
-      .call(d3.axisLeft(y));
+      .call(d3.axisLeft(y).ticks(6));
 
   let bars = barStatusG.selectAll(".bar").data(chartData);
 
@@ -706,224 +633,8 @@ function updateBarStatus(values) {
       .attr("width", x.bandwidth())
       .attr("y", d => y(d.value))
       .attr("height", d => chartHeight - y(d.value));
-
 }
 
-function drawColumnChart(values, container, title, color, chartWidth, chartHeight) {
-  const chartData = values.map((value, index) => ({ index: index + 1, value: value }));
-  const x = d3.scaleBand()
-      .domain(chartData.map(d => d.index))
-      .range([0, chartWidth])
-      .padding(0.2);
-  const y = d3.scaleLinear()
-      .domain([0, d3.max(chartData, d => d.value)])
-      .nice()
-      .range([chartHeight, 0]);
-  container.append("g")
-      .attr("class", "x axis")
-      .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(x).tickSize(0));
-  container.append("g")
-      .attr("class", "y axis")
-      .call(d3.axisLeft(y));
-  container.selectAll(".column")
-      .data(chartData)
-      .enter().append("rect")
-      .attr("class", "column")
-      .attr("x", d => x(d.index))
-      .attr("y", d => y(d.value))
-      .attr("width", x.bandwidth())
-      .attr("height", d => chartHeight - y(d.value))
-      .attr("fill", color);
-}
-
-function drawWaitingTimesLineChart(waitingTimesData, container, title, chartWidth, chartHeight) {
-  const iterations = waitingTimesData.length;
-  const stationCount = waitingTimesData[0].length;
-  const color = d3.scaleOrdinal(d3.schemeCategory10);
-  const stationsData = [];
-  for (let i = 0; i < stationCount; i++) {
-    stationsData.push({
-      station: "Station " + (i + 1),
-      values: waitingTimesData.map((d, iter) => ({ iteration: iter + 1, value: d[i] }))
-    });
-  }
-  const x = d3.scaleLinear()
-      .domain([1, iterations])
-      .range([0, chartWidth]);
-  const y = d3.scaleLog()
-      .domain([1, d3.max(waitingTimesData.flat())])
-      .range([chartHeight, 0]);
-  container.append("g")
-      .attr("class", "x axis")
-      .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(x).ticks(iterations).tickFormat(d3.format("d")));
-  container.append("g")
-      .attr("class", "y axis")
-      .call(d3.axisLeft(y).ticks(5, ".1s"));
-
-  const line = d3.line()
-      .x(d => x(d.iteration))
-      .y(d => y(d.value));
-
-  const stations = container.selectAll(".station")
-      .data(stationsData)
-      .enter().append("g")
-      .attr("class", "station");
-
-  stations.append("path")
-      .attr("class", "line")
-      .attr("d", d => line(d.values))
-      .attr("stroke", d => color(d.station))
-      .attr("fill", "none")
-      .attr("stroke-width", 2);
-
-  stations.append("text")
-      .datum(d => ({ station: d.station, value: d.values[d.values.length - 1] }))
-      .attr("transform", d => `translate(${x(d.value.iteration)}, ${y(d.value.value)})`)
-      .attr("x", 5)
-      .attr("dy", "0.35em")
-      .text(d => d.station)
-      .style("font-size", "10px")
-      .attr("fill", d => color(d.station));
-}
-
-function drawWorkstationStatusChart(data, container, title, chartWidth, chartHeight) {
-  const statusKeys = ["operational", "downtime", "waiting_for_restock"];
-  const stack = d3.stack().keys(statusKeys);
-  const series = stack(data);
-  const x = d3.scaleBand()
-      .domain(data.map(d => d.workstation))
-      .range([0, chartWidth - 80])
-      .padding(0.2);
-  const yExtent = [0, d3.max(series, serie => d3.max(serie, d => d[1]))];
-  const y = d3.scaleLinear()
-      .domain(yExtent)
-      .nice()
-      .range([chartHeight, 0]);
-  container.append("g")
-      .attr("class", "x axis")
-      .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(x));
-  container.append("g")
-      .attr("class", "y axis")
-      .call(d3.axisLeft(y));
-  const color = d3.scaleOrdinal()
-      .domain(statusKeys)
-      .range(["#4daf4a", "#e41a1c", "#377eb8"]);
-  const groups = container.selectAll(".serie")
-      .data(series)
-      .enter().append("g")
-      .attr("class", "serie")
-      .attr("fill", d => color(d.key));
-  groups.selectAll("rect")
-      .data(d => d)
-      .enter().append("rect")
-      .attr("x", (d, i) => x(data[i].workstation))
-      .attr("y", d => y(d[1]))
-      .attr("height", d => y(d[0]) - y(d[1]))
-      .attr("width", x.bandwidth())
-      .on("mouseover", function(d) {
-         const key = d3.select(this.parentNode).datum().key;
-         const value = d.data[key];
-         tooltip.transition().duration(200)
-             .style("opacity", 0.9);
-         tooltip.html("<strong>" + d.data.workstation + "</strong><br>" + key + ": " + value.toFixed(2))
-             .style("left", (d3.event.pageX + 10) + "px")
-             .style("top", (d3.event.pageY - 28) + "px");
-      })
-      .on("mouseout", () => {
-         tooltip.transition().duration(500).style("opacity", 0);
-      });
-  const legend = container.append("g")
-      .attr("transform", `translate(${chartWidth - 80}, 20)`);
-  statusKeys.forEach((key, i) => {
-    const legendItem = legend.append("g")
-        .attr("transform", `translate(0, ${i * 20})`);
-    legendItem.append("rect")
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", color(key));
-    legendItem.append("text")
-        .attr("x", 20)
-        .attr("y", 12)
-        .text(key.replace(/_/g, " "))
-        .style("font-size", "12px");
-  });
-}
-
-function drawSupplierMetricsChart(occupancyData, fixTimeData, container, title, chartWidth, chartHeight) {
-  const smallWidth = chartWidth / 2 - 20;
-  const smallHeight = chartHeight / 2;
-  const smallMargin = { top: 30, right: 20, bottom: 40, left: 50 };
-  const occupancyChartData = occupancyData.map((d, i) => ({ iteration: i + 1, value: d * 100 }));
-  const fixTimeChartData = fixTimeData.map((d, i) => ({ iteration: i + 1, value: d }));
-  const occupancyGroup = container.append("g")
-      .attr("transform", `translate(0, ${smallMargin.top})`);
-  const fixTimeGroup = container.append("g")
-      .attr("transform", `translate(${smallWidth + 40}, ${smallMargin.top})`);
-  
-  drawSmallChart(occupancyGroup, occupancyChartData, smallWidth, smallHeight, "Supplier Occupancy (%)", "#8884d8", smallMargin);
-  drawSmallChart(fixTimeGroup, fixTimeChartData, smallWidth, smallHeight, "Average Fix Time (seconds)", "#82ca9d", smallMargin);
-  
-  function drawSmallChart(group, chartData, chartWidth, chartHeight, chartTitle, color, margin) {
-    const x = d3.scaleBand()
-        .domain(chartData.map(d => d.iteration))
-        .range([0, chartWidth])
-        .padding(0.2);
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(chartData, d => d.value) * 1.1])
-        .nice()
-        .range([chartHeight, 0]);
-    group.append("g")
-        .attr("class", "x axis")
-        .attr("transform", `translate(0, ${chartHeight})`)
-        .call(d3.axisBottom(x).tickFormat(d3.format("d")));
-    group.append("g")
-        .attr("class", "y axis")
-        .call(d3.axisLeft(y));
-    group.append("text")
-        .attr("x", chartWidth / 2)
-        .attr("y", -10)
-        .attr("text-anchor", "middle")
-        .attr("class", "axis-title")
-        .text(chartTitle);
-    group.selectAll(".bar")
-        .data(chartData)
-        .enter().append("rect")
-        .attr("class", "bar")
-        .attr("x", d => x(d.iteration))
-        .attr("y", d => y(d.value))
-        .attr("width", x.bandwidth())
-        .attr("height", d => chartHeight - y(d.value))
-        .attr("fill", color)
-        .on("mouseover", d => {
-          tooltip.transition().duration(200)
-              .style("opacity", 0.9);
-          tooltip.html("Iteration " + d.iteration + "<br>Value: " + d.value.toFixed(2))
-              .style("left", (d3.event.pageX + 10) + "px")
-              .style("top", (d3.event.pageY - 28) + "px");
-        })
-        .on("mouseout", () => {
-          tooltip.transition().duration(500).style("opacity", 0);
-        });
-    group.selectAll(".bar-label")
-        .data(chartData)
-        .enter().append("text")
-        .attr("x", d => x(d.iteration) + x.bandwidth() / 2)
-        .attr("y", d => y(d.value) - 5)
-        .attr("text-anchor", "middle")
-        .text(d => d.value.toFixed(2))
-        .style("font-size", "10px")
-        .style("fill", "#333");
-  }
-}
-
-// -------------------------------------------------
-// EXTRA CHARTS STANDARDIZED: Initialization & Update
-// -------------------------------------------------
-
-// Containers and globals
 const extraCharts = {
   accidentRate: {},
   workstationStatus: {},
@@ -931,9 +642,6 @@ const extraCharts = {
   supplierMetrics: {}
 };
 
-// -------------------------------------------------
-// Initialize all extra charts once
-// -------------------------------------------------
 function initExtraCharts() {
   initAccidentRateChart();
   initWorkstationStatusChart();
@@ -941,29 +649,21 @@ function initExtraCharts() {
   initSupplierMetricsChart();
 }
 
-// -------------------------------------------------
-// Update all extra charts
-// -------------------------------------------------
 function updateExtraCharts(filteredData) {
-  // Prepare data
   const accidentRates = filteredData.map(d => d.accident_rate);
   const lastStatus = filteredData[filteredData.length - 1].workstation_status;
   const waitingTimes = filteredData.map(d => d.bottleneck_workstations.waiting_times);
   const supplierOccupancy = filteredData.map(d => d.supplier_occupancy);
   const avgFixTimes = filteredData.map(d => d.avg_fix_time);
 
-  // Call updates
   updateAccidentRateChart(accidentRates);
   updateWorkstationStatusChart(lastStatus);
   updateBottleneckTimesChart(waitingTimes);
   updateSupplierMetricsChart(supplierOccupancy, avgFixTimes);
 }
 
-// -------------------------------------------------
-// Accident Rate (Column Chart)
-// -------------------------------------------------
 function initAccidentRateChart() {
-  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+  const margin = { top: 20, right: 20, bottom: 30, left: 50 };
   const width = 650 - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
   const svg = d3.select('#accident-rate')
@@ -974,7 +674,6 @@ function initAccidentRateChart() {
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
   extraCharts.accidentRate = { svg, margin, width, height };
-  // Initial axes
   svg.append('g').attr('class', 'x-axis').attr('transform', `translate(0,${height})`);
   svg.append('g').attr('class', 'y-axis');
 }
@@ -990,7 +689,6 @@ function updateAccidentRateChart(data) {
       .nice()
       .range([height, 0]);
 
-  // Update axes with smooth transitions (1s duration)
   svg.select('.x-axis')
       .transition().duration(1000)
       .call(d3.axisBottom(x).tickSize(0));
@@ -998,18 +696,15 @@ function updateAccidentRateChart(data) {
       .transition().duration(1000)
       .call(d3.axisLeft(y).ticks(5).tickFormat(d => d + '%'));
 
-  // Data join
   const bars = svg.selectAll('rect.bar')
       .data(data, (_, i) => i);
 
-  // EXIT: Smooth transition out
   bars.exit()
       .transition().duration(1000)
       .attr('y', y(0))
       .attr('height', 0)
       .remove();
 
-  // ENTER
   const barsEnter = bars.enter().append('rect')
       .attr('class', 'bar')
       .attr('x', (_, i) => x(i + 1))
@@ -1018,7 +713,6 @@ function updateAccidentRateChart(data) {
       .attr('height', 0)
       .attr('fill', '#69b3a2');
 
-  // UPDATE + ENTER with smooth transitions
   barsEnter.merge(bars)
       .transition().duration(1000)
       .attr('x', (_, i) => x(i + 1))
@@ -1027,10 +721,6 @@ function updateAccidentRateChart(data) {
       .attr('height', d => height - y(d));
 }
 
-
-// -------------------------------------------------
-// Workstation Status (Stacked Bar Chart)
-// -------------------------------------------------
 function initWorkstationStatusChart() {
   const margin = { top: 20, right: 50, bottom: 30, left: 50 };
   const width = 650 - margin.left - margin.right;
@@ -1064,24 +754,21 @@ function updateWorkstationStatusChart(statusArray) {
       .nice()
       .range([height, 0]);
 
-  // Smooth axes update (1s duration)
   svg.select('.x-axis').transition().duration(1000).call(d3.axisBottom(x));
   svg.select('.y-axis').transition().duration(1000).call(d3.axisLeft(y));
 
   const color = d3.scaleOrdinal().domain(keys).range(d3.schemeCategory10);
 
-  // Data join for layers
   const groups = svg.selectAll('g.layer')
-      .data(series, d => d.key);
+    .data(series, d => d.key);
   groups.exit().remove();
   const groupsEnter = groups.enter().append('g')
       .attr('class', 'layer')
       .attr('fill', d => color(d.key));
   const layer = groupsEnter.merge(groups);
 
-  // Data join for rects
   const rects = layer.selectAll('rect')
-      .data(d => d, d => d.data.workstation);
+    .data(d => d, d => d.data.workstation);
   rects.exit()
       .transition().duration(1000)
       .attr('height', 0)
@@ -1100,7 +787,6 @@ function updateWorkstationStatusChart(statusArray) {
       .attr('y', d => y(d[1]))
       .attr('height', d => y(d[0]) - y(d[1]));
 
-  // Update legend (static; no transition needed)
   const legend = svg.select('.legend').selectAll('g').data(keys);
   const legendEnter = legend.enter().append('g')
       .attr('transform', (_, i) => `translate(-100,${i * 20})`);
@@ -1115,10 +801,6 @@ function updateWorkstationStatusChart(statusArray) {
       .style('font-size', '12px');
 }
 
-
-// -------------------------------------------------
-// Bottleneck Waiting Times (Line Chart)
-// -------------------------------------------------
 function initBottleneckTimesChart() {
   const margin = { top: 20, right: 100, bottom: 30, left: 50 };
   const width = 650 - margin.left - margin.right;
@@ -1133,6 +815,11 @@ function initBottleneckTimesChart() {
   extraCharts.bottleneckTimes = { svg, margin, width, height };
   svg.append('g').attr('class','x-axis').attr('transform',`translate(0,${height})`);
   svg.append('g').attr('class','y-axis');
+
+  // Add legend group for Bottleneck Times Chart
+  svg.append("g")
+    .attr("class", "bottleneck-legend")
+    .attr("transform", `translate(${width + 20}, 20)`);
 }
 
 function updateBottleneckTimesChart(waitingData) {
@@ -1145,7 +832,6 @@ function updateBottleneckTimesChart(waitingData) {
       .domain([1, d3.max(waitingData.flat())])
       .range([height, 0]);
 
-  // Smooth axes updates (1s duration)
   svg.select('.x-axis')
       .transition().duration(1000)
       .call(d3.axisBottom(x).ticks(iterations).tickFormat(d3.format('d')));
@@ -1153,16 +839,14 @@ function updateBottleneckTimesChart(waitingData) {
       .transition().duration(1000)
       .call(d3.axisLeft(y).ticks(5, '.1s'));
 
-  // Prepare series for each station
   const stations = d3.range(stationCount).map(i => ({
-      id: i,
-      values: waitingData.map((d, j) => ({ x: j + 1, y: d[i] }))
+    id: i,
+    values: waitingData.map((d, j) => ({ x: j + 1, y: d[i] }))
   }));
 
   const color = d3.scaleOrdinal().domain(stations.map(s => s.id)).range(d3.schemeCategory10);
   const lineGen = d3.line().x(d => x(d.x)).y(d => y(d.y));
 
-  // Data join for lines
   const lines = svg.selectAll('path.line').data(stations, d => d.id);
   lines.exit().remove();
   const linesEnter = lines.enter().append('path')
@@ -1172,12 +856,27 @@ function updateBottleneckTimesChart(waitingData) {
       .transition().duration(1000)
       .attr('stroke', d => color(d.id))
       .attr('d', d => lineGen(d.values));
+
+  // Update legend for Bottleneck Waiting Times Chart
+  const legend = svg.select(".bottleneck-legend").selectAll("g")
+      .data(stations);
+  const legendEnter = legend.enter().append("g")
+      .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+  
+  legendEnter.append("rect")
+      .attr("width", 15)
+      .attr("height", 15)
+      .attr("fill", d => color(d.id));
+  
+  legendEnter.append("text")
+      .attr("x", 20)
+      .attr("y", 12)
+      .text(d => "Station " + (d.id + 1))
+      .style("font-size", "12px");
+      
+  legend.exit().remove();
 }
 
-
-// -------------------------------------------------
-// Supplier Metrics (Two small column charts)
-// -------------------------------------------------
 function initSupplierMetricsChart() {
   const margin = { top: 30, right: 20, bottom: 40, left: 50 };
   const width = 650 - margin.left - margin.right;
@@ -1189,14 +888,12 @@ function initSupplierMetricsChart() {
     .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Two groups
   const halfWidth = (width - 40) / 2;
   svg.append('g').attr('class','occupancy').attr('transform','translate(0,0)');
   svg.append('g').attr('class','fixTime').attr('transform',`translate(${halfWidth+40},0)`);
 
   extraCharts.supplierMetrics = { svg, margin, width: halfWidth, height, groups: { occupancy: svg.select('.occupancy'), fixTime: svg.select('.fixTime') } };
 
-  // Axes groups
   extraCharts.supplierMetrics.groups.occupancy.append('g').attr('class','x-axis').attr('transform',`translate(0,${height- margin.bottom})`);
   extraCharts.supplierMetrics.groups.occupancy.append('g').attr('class','y-axis');
   extraCharts.supplierMetrics.groups.fixTime.append('g').attr('class','x-axis').attr('transform',`translate(0,${height- margin.bottom})`);
@@ -1205,11 +902,9 @@ function initSupplierMetricsChart() {
 
 function updateSupplierMetricsChart(occupancyData, fixTimeData) {
   const { groups, width, height } = extraCharts.supplierMetrics;
-  // Occupancy: using a non-black color (example: "#8884d8")
   const occVals = occupancyData.map((v, i) => ({ x: i + 1, y: v * 100 }));
   updateSmallColumn(groups.occupancy, occVals, width, height, 'Supplier Occupancy (%)', "#8884d8");
   
-  // Fix Time: using a non-black color (example: "#82ca9d")
   const fixVals = fixTimeData.map((v, i) => ({ x: i + 1, y: v }));
   updateSmallColumn(groups.fixTime, fixVals, width, height, 'Average Fix Time (s)', "#82ca9d");
 }
@@ -1234,7 +929,6 @@ function updateSmallColumn(container, data, width, height, title, barColor) {
     .merge(t)
       .text(title);
 
-  // Data join for bars
   const bars = container.selectAll('rect.bar').data(data, d => d.x);
   bars.exit()
       .transition().duration(1000)
@@ -1258,8 +952,3 @@ function updateSmallColumn(container, data, width, height, title, barColor) {
       .attr('height', d => height - 40 - y(d.y))
       .attr('fill', barColor);
 }
-
-
-// -------------------------------------------------
-// Usage: call initExtraCharts() once in main, and keep updateExtraCharts in render flow
-// -------------------------------------------------
