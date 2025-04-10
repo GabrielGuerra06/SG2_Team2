@@ -12,6 +12,9 @@ Disclaimer:
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import *
+from data_exporter import export_simulation_data
+
+
 
 def run_simulation():
     """
@@ -274,10 +277,17 @@ def print_average_stats(results):
 
 
 def main():
-    results = run_multiple_simulations(SimulationConfig().ITERATIONS)
+    config = SimulationConfig()
+    results = run_multiple_simulations(config.ITERATIONS)
 
-    if SimulationConfig().PLOTTING:
-        plot_results(results, SimulationConfig().ITERATIONS)
+    export_simulation_data(results, metadata={
+        "iterations": config.ITERATIONS,
+        "num_stations": config.NUM_STATIONS,
+        "simulation_time": config.SIMULATION_TIME
+    })
+
+    if config.PLOTTING:
+        plot_results(results, config.ITERATIONS)
 
     print_average_stats(results)
 
