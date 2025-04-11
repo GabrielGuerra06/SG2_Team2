@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="top-nav">
+    <ul>
+      <li><button class="primary-nav" data-period="day">Day</button></li>
+      <li><button class="primary-nav" data-period="week">Week</button></li>
+      <li><button class="primary-nav" data-period="month">Month</button></li>
+      <li><button class="primary-nav" data-period="year">Year</button></li>
+    </ul>
+    <div id="time-indicator">
+      <b>Day 1</b>
+    </div>
+    <div id="sub-nav"></div>
+  </nav>
+
+  <div class="cards-container">
+    <div class="card">
+      <div class="card-header">
+        <h2>Production Totals</h2>
+        <p>Accepted: <span class="highlight">0</span> | Rejected: <span class="highlight">0</span></p>
+      </div>
+      <p class="card-content">Rejection %: <span class="highlight">0%</span></p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Workstation Occupancy</h2>
+        <p>Avg Occupancy: <span class="highlight">0%</span></p>
+      </div>
+      <p class="card-content">Data aggregated per workstation</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Production Time</h2>
+        <p>Average Time: <span class="highlight">0 s</span></p>
+      </div>
+      <p class="card-content">Performance metrics</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Delays & Safety</h2>
+        <p>Avg Delay: <span class="highlight">0</span> | Accidents: <span class="highlight">0</span></p>
+      </div>
+      <p class="card-content">Accident Rate: <span class="highlight">0</span></p>
+    </div>
+  </div>
+
+  <div class="charts-container">
+    <div id="chart-area" class="chart">
+      <h3 class="chart-title">Accepted vs. Rejected Products</h3>
+    </div>
+    <div id="prod-chart" class="chart">
+      <h3 class="chart-title">Average Production Time per Workstation</h3>
+    </div>
+    <div id="bar-chart" class="chart">
+      <h3 class="chart-title">Workstation Occupancy (%)</h3>
+    </div>
+    <div id="gauge-chart" class="chart">
+      <h3 class="chart-title">Production Rejection Percentage</h3>
+    </div>
+    <div id="average-delay-time" class="chart">
+      <h3 class="chart-title">Average Delay Time</h3>
+    </div>
+    <div id="accident-rate" class="chart">
+      <h3 class="chart-title">Accident Rate</h3>
+    </div>
+    <div id="workstation-status" class="chart">
+      <h3 class="chart-title">Workstation Status</h3>
+    </div>
+    <div id="bottleneck-waiting-times" class="chart">
+      <h3 class="chart-title">Bottleneck Waiting Times</h3>
+    </div>
+    <div id="supplier-metrics" class="chart">
+      <h3 class="chart-title">Supplier Metrics</h3>
+    </div>
+  </div>
+  <div class="container">
+    <header>
+        <h1>Narrative: Diagnosing a Hidden Bottleneck</h1>
+    </header>
+
+    <section id="business-context">
+        <h3>Business Context</h3>
+        <p>
+            In this narrative, I’ll tell you a story about where we stand today at ACME Manufacturing: as a mid‑sized
+            leader in high‑precision automotive and aerospace components, our reputation for speed and reliability is
+            built on six automated workstations that hum around the clock. We’ve poured resources into cutting‑edge
+            robotics and real‑time monitoring, and our current throughput metrics look strong—on the surface. But
+            beneath those numbers lies a hidden choke point: one station is quietly struggling under surging demand,
+            threatening to stall the whole line. Today, we’ll explore how this unseen bottleneck could limit our
+            growth—and, more importantly, how we can rewrite this chapter to keep our promise of consistent quality and
+            scalability.
+        </p>
+    </section>
+
+    <section id="setting-the-stage">
+        <h3>1. Setting the Stage: All Signs Point to Success</h3>
+        <p>
+            At first glance, the manufacturing line appears to be firing on all cylinders:
+        </p>
+        <ul>
+            <li><strong>High Occupancy:</strong> Each workstation regularly operates above 95% occupancy.</li>
+            <li><strong>Tight Production Times:</strong> On average, each station produces one unit every 4 seconds.
+            </li>
+            <li><strong>Strong Output:</strong> Sixty percent of the days see more than 1,100 units produced.</li>
+            <li><strong>Acceptable Rejection Rates:</strong> Rejection remains in the 4–6% range—generally stable except
+                for a few outliers.
+            </li>
+        </ul>
+        <p>
+            A casual observer might conclude that the system is optimized. The bar charts show nearly full utilization
+            across all six workstations, suggesting few, if any, glaring inefficiencies.
+        </p>
+        <div class="chart-placeholder" id="chart-overview">
+            <iframe src="Bullet_Chart/index.html" style="width:49%; height:400px; border:none;"></iframe>
+            <iframe src="Box_Plot/index.html" style="width:49%; height:400px; border:none;"></iframe>
+            <p class="footnote">
+                By combining workstation occupancy bars with a rejection‑rate box plot in a single view, these charts
+                enable the operations team to instantly spot overburdened stations and emerging quality issues,
+                prioritize targeted interventions—such as reallocating resources, scheduling maintenance, or providing
+                focused training—and communicate performance trends clearly across all levels of the organization to
+                drive data‑informed process improvements and maximize throughput.
+            </p>
+        </div>
+    </section>
+
+    <section id="cracks-beneath">
+        <h3>2. Cracks Beneath the Surface: An Unexpected Clue</h3>
+        <p>
+            Despite these promising metrics, deeper inspection reveals two red flags:
+        </p>
+        <ol>
+            <li><strong>Growing Delays:</strong> Some days experience spikes in production wait times.</li>
+            <li><strong>Faulty Product Surges:</strong> Occasional leaps in rejected products hint at internal stress.
+            </li>
+        </ol>
+        <p>
+            A closer look at the data exposes a surprising culprit: Workstation 0 consistently emerges as the
+            bottleneck—despite appearing just as busy and efficient as its counterparts.
+        </p>
+        <p>
+            <strong>Key Finding:</strong> In days simulations, while other workstations show waiting times of only a few
+            thousand units, Workstation 0’s queue can skyrocket above 1.7 million units. This isn’t a trivial
+            shortfall—it’s exponential.
+        </p>
+        <div class="chart-placeholder" id="chart-cracks-beneath">
+            <iframe src="True_Bottleneck/index.html" style="width:80%; height:600px; border:none;"></iframe>
+            <p class="footnote">
+                Presenting average waiting times across all workstations in a single bar chart instantly highlights the
+                stark contrast at WS0—making the scale of its backlog obvious at a glance. This clear visual comparison
+                empowers the team to focus improvement efforts on the true bottleneck rather than treating all stations
+                equally.
+            </p>
+        </div>
+    </section>
+
+    <section id="true-bottleneck">
+        <h3>3. The True Bottleneck: Overworked and Overlooked</h3>
+        <p>
+            Workstation 0 never truly rests. It runs continuously, yet it’s perpetually behind demand. Because it can’t
+            pause to recover or adjust, it stalls the entire production line.
+        </p>
+        <h4>Visual Evidence</h4>
+        <ul>
+            <li>The system achieves up to ~1,000 units produced at a steady rate, then plateaus around 1,100–1,150
+                units, even as wait times keep climbing.
+            </li>
+            <li>Beyond this threshold, increasing arrivals do not yield higher throughput; they merely jam the queue.
+            </li>
+            <li>A near-linear correlation emerges: when waiting times at Workstation 0 rise, end-to-end delays follow
+                suit almost one-to-one.
+            </li>
+        </ul>
+        <p>
+            Rather than “diminishing returns,” we see a system straining under continuous load.
+        </p>
+        <div class="chart-placeholder" id="chart-visual-evidence">
+            <iframe src="Cracks_Beneath/index.html" style="width:80%; height:600px; border:none;"></iframe>
+            <p class="footnote">
+                By mapping average delay times against accepted product counts and coloring points by WS0 waiting time,
+                this visualization makes it immediately clear where bottlenecks occur—revealing that spikes in overall
+                delay correspond directly with exponential queue growth at Workstation0. This insight enables the
+                operations team to prioritize capacity and process improvements precisely where they will have the
+                greatest impact.
+            </p>
+        </div>
+    </section>
+
+    <section id="ripple-effect">
+        <h3>4. The Ripple Effect: Stranded Productivity</h3>
+        <p>
+            Because Workstation 0 can’t keep pace, the rest of the system stalls. Symptoms include:
+        </p>
+        <ol>
+            <li><strong>Idle Stations:</strong> Other workstations sit idle, even though they could process more.</li>
+            <li><strong>Queue Overflows:</strong> Products pile up, waiting to be started.</li>
+            <li><strong>Quality Drops:</strong> When backlogs suddenly release, stations down the line experience rushed
+                or “crammed” processing—amplifying defect rates. In some simulations, defects rise above 6%, nearly
+                twice the lower baseline.
+            </li>
+        </ol>
+        <div class="chart-placeholder" id="ripple-effect-placeholder">
+            <iframe src="Ripple_Effect/index.html" style="width:80%; height:600px; border:none;"></iframe>
+            <p class="footnote">
+                This scatter plot overlays three critical dimensions—average delay time on the x‑axis, faulty product
+                rate on the y‑axis, and Workstation0 waiting time as the color gradient—to reveal how system congestion
+                directly impacts quality. Points shift rightward and upward as delays lengthen, while the color
+                transitions from cool to hot indicate escalating queue sizes at WS0. Together, these visual cues make
+                it unmistakable that days with the highest bottleneck buildup also suffer the greatest defect surges,
+                enabling targeted process adjustments at the precise threshold where quality begins to degrade.
+            </p>
+        </div>
+    </section>
+
+    <section id="bottom-line">
+        <h3>5. The Bottom Line: Running Full-Throttle Yet Breaking</h3>
+        <p>
+            Despite high occupancy and seemingly robust output, the current setup isn’t scalable. Relying on Workstation
+            0 to run nonstop—without breaks or upgrades—creates a single point of failure.
+        </p>
+        <ul>
+            <li><strong>Resource Drain:</strong> Wasted time, energy, and materials when production hits its limit
+                prematurely.
+            </li>
+            <li><strong>System Instability:</strong> Performance fluctuations cause spikes in rejection rates and
+                unpredictable delays.
+            </li>
+            <li><strong>Persistent Bottleneck:</strong> Across 20+ simulations, Workstation 0 held the bottleneck crown
+                100% of the time—statistically impossible to ignore.
+            </li>
+        </ul>
+        <p>
+            During the 365 days, Workstation 0 is the bottleneck 100% of the time — a statistical certainty that can no
+            longer be ignored.
+        </p>
+        <div class="chart-placeholder" id="chart-placeholder">
+            <iframe src="Bottom_Line/index.html" style="width:80%; height:700px;"></iframe>
+            <p class="footnote">
+                <em></em> This final visualization aggregates daily and simulated metrics, giving a holistic view of the
+                production line’s performance. It confirms that despite initial appearances, Workstation 0 remains the
+                constant bottleneck.
+            </p>
+        </div>
+    </section>
+
+    <section id="strategic-recommendations">
+        <h3>6. Strategic Recommendations: Targeted Actions to Unclog WS0</h3>
+
+        <h4>Short‑Term (Next 1–2 Weeks): Preventive Deep‑Dive</h4>
+        <ul>
+            <li><strong>Root‑Cause Audit:</strong> Perform a focused teardown of WS0’s key subsystems—check bearings,
+                drive motors, sensor calibrations, and PLC software logs. Identify wear patterns or error‑code clusters
+                that correlate with past queue spikes.
+            </li>
+            <li><strong>Quick‑Fix Kit:</strong> Stock and pre‑stage replacement parts for the most failure‑prone
+                components. Train an on‑call “rapid response” crew to swap these
+                in under 30minutes.
+            </li>
+        </ul>
+
+        <h4>Medium‑Term (1–3 Months): Process & Layout Adjustments</h4>
+        <ul>
+            <li><strong>Parallelize Critical Steps:</strong> Reconfigure the WS0 workflow into two side‑by‑side lanes
+                for the top 30% highest‑volume tasks. This halves peak load per lane and smooths throughput.
+            </li>
+            <li><strong>Dynamic Buffering:</strong> Install a small automated buffer upstream of WS0 that meters parts into the station at a steady rate, absorbing input
+                “bursts” and preventing sudden surges.
+            </li>
+            <li><strong>Batch Scheduling Optimization:</strong> Shift from large, ad‑hoc batches to staggered
+                micro‑batches (50–100 units) with timed releases—this spreads demand evenly over each shift.
+            </li>
+        </ul>
+
+        <h4>Long‑Term (3–12+ Months): Systemic Resilience & Scalability</h4>
+        <ul>
+            <li><strong>Cross‑Station Load Balancing:</strong> Develop a digital twin of the entire line to simulate
+                alternative task assignments. Use it to redistribute up to 15% of WS0’s workload to under‑utilized
+                downstream stations without hardware changes.
+            </li>
+            <li><strong>Real‑Time Flow Control:</strong> Deploy an IIoT dashboard that ingests live queue lengths, cycle
+                times, and reject rates. Set automated triggers  when WS0’s queue exceeds 500k units.
+            </li>
+            <li><strong>Continuous Kaizen Cadence:</strong> Schedule monthly “bottleneck blitz” workshops where
+                engineers review the past 30days of throughput and quality data, adjust thresholds in the flow‑control
+                system, and prototype new lean ideas.
+            </li>
+        </ul>
+    </section>
+
+    <section id="final-insight">
+        <h3>7. The Final Insight: Turning a High‑Utilization Liability into a Competitive Edge</h3>
+        <p>
+            Workstation0’s relentless pace once seemed an asset—until its unrelenting queues began stalling the entire
+            line and driving up defect rates. By combining rapid‑response maintenance, smart buffering, and digital flow
+            controls, you’ll transform that bottleneck into a controlled throttle. Now, you can expand your capacity:
+        </p>
+        <ul>
+            <li><strong>Hidden Capacity Unlocked:</strong> 10–15% more throughput without capital‑intensive expansions.
+            </li>
+            <li><strong>Waste Minimized:</strong> 30% fewer rejects and reworks through steadier processing.</li>
+            <li><strong>Operational Stability:</strong> Predictable output rates that let you shift from firefighting to
+                strategic growth.
+            </li>
+        </ul>
+    </section>
+
+
+</div>
+
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/d3.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
