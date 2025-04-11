@@ -32,7 +32,6 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
     const centerY = (height - margin.top - margin.bottom) / 2;
     const boxWidth = 140;
 
-    // Whisker line
     chart.append("line")
         .attr("x1", x(Math.max(d3.min(nonOutliers), lowerWhisker)))
         .attr("x2", x(Math.min(d3.max(nonOutliers), upperWhisker)))
@@ -40,7 +39,6 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
         .attr("y2", centerY)
         .attr("stroke", "black");
 
-    // Box
     chart.append("rect")
         .attr("x", x(q1))
         .attr("y", centerY - boxWidth / 4)
@@ -49,7 +47,6 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
         .attr("fill", "#69b3a2")
         .attr("stroke", "black");
 
-    // Median line
     chart.append("line")
         .attr("x1", x(median))
         .attr("x2", x(median))
@@ -58,7 +55,6 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
         .attr("stroke", "black")
         .attr("stroke-width", 2);
 
-    // Whisker caps
     [Math.max(d3.min(nonOutliers), lowerWhisker), Math.min(d3.max(nonOutliers), upperWhisker)].forEach(val => {
         chart.append("line")
             .attr("x1", x(val))
@@ -68,12 +64,10 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
             .attr("stroke", "black");
     });
 
-    // X Axis
     chart.append("g")
         .attr("transform", `translate(0, ${centerY + boxWidth / 2 + 10})`)
         .call(d3.axisBottom(x).tickFormat(d => d.toFixed(1)));
 
-    // Title
     svg.append("text")
         .attr("x", width / 2)
         .attr("y", margin.top / 2)
@@ -82,7 +76,6 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
         .attr("font-weight", "bold")
         .text("Production Rejection % Distribution");
 
-    // Styled outliers (initially hidden)
     const outlierDots = chart.selectAll(".outlier")
         .data(outliers)
         .enter()
@@ -98,7 +91,6 @@ d3.json("data/simulation_results_20250410_093155.json").then(function(data) {
         .append("title")
         .text(d => `Outlier: ${d.toFixed(2)}%`);
 
-    // Toggle logic
     let showing = false;
     d3.select("#toggle-outliers").on("click", function () {
         showing = !showing;
