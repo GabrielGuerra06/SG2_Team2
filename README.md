@@ -6,7 +6,7 @@ This script simulates operations at a manufacturing facility using event-driven 
 
 ## Features
 
-- **Parameterization:** Customize various simulation aspects such as:
+- **Parameterization:** Customize various simulation aspects such as (open with -h for help):
   - **Bin Capacity:** Maximum items per bin.
   - **Restock Devices:** Number of devices to restock bins.
   - **Restock & Maintenance Timing:** Mean time values for operations.
