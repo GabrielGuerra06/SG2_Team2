@@ -1,0 +1,75 @@
+[
+    {
+        "accepted_products": 734,
+        "rejected_products": 25,
+        "total_products": 759,
+        "occupancy_per_workstation": [
+            0.99934881299692,
+            0.9974223376860044,
+            0.9910825153849557,
+            0.9835531494812089,
+            0.979743918834422,
+            0.9605318724407341
+        ],
+        "avg_production_time": [
+            3.986096081991484,
+            4.003559952153052,
+            4.008518453945522,
+            4.055560064419271,
+            4.0451065569561635,
+            4.018035171277115
+        ],
+        "production_rejection_percentage": 3.293807641633729,
+        "avg_delay_time": 1328.408694878629,
+        "accident_rate": 100,
+        "workstation_status": [
+            {
+                "operational": 3172.932481265221,
+                "downtime": 0.4305787363339846,
+                "waiting_for_restock": 2.067518734778787
+            },
+            {
+                "operational": 3166.815922153064,
+                "downtime": 0.297293602706759,
+                "waiting_for_restock": 8.184077846935907
+            },
+            {
+                "operational": 3146.6869863472343,
+                "downtime": 19.067611047362874,
+                "waiting_for_restock": 28.313013652765676
+            },
+            {
+                "operational": 3122.781249602838,
+                "downtime": 58.88767921059609,
+                "waiting_for_restock": 52.218750397161784
+            },
+            {
+                "operational": 3110.68694229929,
+                "downtime": 32.826410948217756,
+                "waiting_for_restock": 64.31305770071003
+            },
+            {
+                "operational": 3049.688694999331,
+                "downtime": 19.64444626778959,
+                "waiting_for_restock": 125.31130500066911
+            }
+        ],
+        "bottleneck_workstations": {
+            "waiting_times": [
+                950540.9869123318,
+                8938.16150904931,
+                6950.506525743633,
+                10934.262875111037,
+                25543.03470017615,
+                5354.93382684917
+            ],
+            "bottleneck_station": 0,
+            "max_waiting_time": 950540.9869123318
+        },
+        "supplier_occupancy": 0.0388815318238225,
+        "avg_fix_time": 2.3846185420546733,
+        "avg_bottleneck_delay": 1328.408694878629,
+        "faulty_product_rate": 0.03293807641633729,
+        "accidents": 1
+    }
+]

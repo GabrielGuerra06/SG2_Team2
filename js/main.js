@@ -16,7 +16,7 @@ const tooltip = d3.select(".charts-container")
   .style("opacity", 0);
 
 function main() {
-  d3.json("data/simulation_results_20250410_093155.json")
+  d3.json("Simulator/data/simulator.json")
     .then(data => {
       allData = data;
       setUpPrimaryNav();

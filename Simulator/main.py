@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import simpy
 from utils import *
 
-
 def run_simulation():
     """
     Runs and logs the results of a single simulation of a manufacturing facility.
@@ -59,7 +58,7 @@ def run_simulation():
         # Down time is recorded from maintenance downtime.
         down_time = facility.maintenance_downtime[i]
         # Waiting for restock (or idle) is what remains.
-        waiting = actual_time - (operational)
+        waiting = actual_time - operational
         workstation_status.append({
             "operational": operational,
             "downtime": down_time,
@@ -67,9 +66,7 @@ def run_simulation():
         })
 
     # Analysis on bottleneck workstations using waiting times.
-    # We assume facility.station_waiting_time is a list with waiting time for each station.
-    waiting_times = facility.station_waiting_time if hasattr(facility, 'station_waiting_time') else [
-                                                                                                        0] * SimulationConfig().NUM_STATIONS
+    waiting_times = facility.station_waiting_time if hasattr(facility, 'station_waiting_time') else [0] * SimulationConfig().NUM_STATIONS
     bottleneck_index = int(np.argmax(waiting_times)) if waiting_times else None
     max_waiting_time = max(waiting_times) if waiting_times else 0
     bottleneck_analysis = {
@@ -79,50 +76,35 @@ def run_simulation():
     }
 
     # Average production time per workstation.
-    # This example assumes that the facility tracks avg production time per station.
-    # If not available, you should add the calculation in your simulation.
     avg_production_time = []
     for i in range(SimulationConfig().NUM_STATIONS):
         if facility.station_counts[i] > 0:
             prod_time = facility.station_busy_time[i] / facility.station_counts[i]
         else:
             prod_time = 0
-        # Wrap each value in a list if you want the output format as a list of lists.
         avg_production_time.append(prod_time)
 
     # Compile all metrics into the dictionary.
     metrics = {
-        # Basic production metrics
         "accepted_products": accepted,
         "rejected_products": rejected,
         "total_products": total,
-        "occupancy_per_workstation": [  # Duplicate of occupancy_rates for clarity
+        "occupancy_per_workstation": [
             facility.station_busy_time[i] / actual_time for i in range(SimulationConfig().NUM_STATIONS)
         ],
-
-        # Additional production metrics
         "avg_production_time": avg_production_time,
         "production_rejection_percentage": rejection_percentage,
         "avg_delay_time": avg_delay,
         "accident_rate": int(accident) * 100,  # Expressed as percentage (0 or 100)
-
-        # Workstation status partition details
         "workstation_status": workstation_status,
-
-        # Analysis on bottleneck workstations
         "bottleneck_workstations": bottleneck_analysis,
-
-        # Other facility metrics
         "supplier_occupancy": facility.restock_device_busy_time / (actual_time * SimulationConfig().RESTOCK_DEVICES),
-        "avg_fix_time":
-            facility.total_maintenance_time / facility.total_maintenance_events if facility.total_maintenance_events > 0 else 0,
+        "avg_fix_time": facility.total_maintenance_time / facility.total_maintenance_events if facility.total_maintenance_events > 0 else 0,
         "avg_bottleneck_delay": avg_delay,
         "faulty_product_rate": rejected / total if total > 0 else 0,
         "accidents": int(accident)
     }
-
     return metrics
-
 
 def run_multiple_simulations_dict(num_iterations):
     """
@@ -142,40 +124,41 @@ def run_multiple_simulations_dict(num_iterations):
         all_results.append(simulation_result)
     return all_results
 
-
-def export_results_to_json(results, folder="data", filename_prefix="simulation_results"):
+def export_results_to_json(results, generated_folder="Data", filename="simulator.json", backup_folder="Data/backup"):
     """
-    Exports the simulation results to a JSON file with a timestamp and saves it in the specified folder.
+    Exports the simulation results to a JSON file with a common name for dashboard use.
+    If a previous JSON file exists, it is moved to a backup folder with a timestamp.
 
     Args:
         results (list[dict]): List of simulation result dictionaries.
-        folder (str): The folder where the JSON file will be saved.
-        filename_prefix (str): The prefix for the filename.
-
-    Returns:
-        None
+        generated_folder (str): Folder where the JSON file will be saved.
+        filename (str): Name of the JSON file for the dashboard.
+        backup_folder (str): Folder to store backup files.
     """
-    # Ensure the folder exists
-    os.makedirs(folder, exist_ok=True)
-    # Create a timestamp string in the format YYYYMMDD_HHMMSS
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{filename_prefix}_{timestamp}.json"
-    filepath = os.path.join(folder, filename)
+    # Ensure the main folder exists.
+    os.makedirs(generated_folder, exist_ok=True)
+    filepath = os.path.join(generated_folder, filename)
 
+    # If a previous file exists, move it to the backup folder with a timestamp.
+    if os.path.exists(filepath):
+        os.makedirs(backup_folder, exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_filename = f"{timestamp}.json"
+        backup_path = os.path.join(backup_folder, backup_filename)
+        os.rename(filepath, backup_path)
+        print(f"Previous results backed up to {backup_path}")
+
+    # Export the new simulation results.
     with open(filepath, "w") as file:
         json.dump(results, file, indent=4)
-
     print(f"Results successfully exported to {filepath}")
-
 
 def plot_results(results_list, num_iterations):
     """
     Visualizes aggregated results from multiple simulation runs.
     (This function can be updated to generate aggregate plots if needed.)
     """
-    # Aggregate plotting functionality can be added here.
     pass
-
 
 def print_individual_results(results_list):
     """
@@ -184,15 +167,11 @@ def print_individual_results(results_list):
     Args:
         results_list (list[dict]): List of dictionaries where each dictionary contains
                                    simulation results for one day.
-
-    Returns:
-        None
     """
     for day_index, result in enumerate(results_list, start=1):
         print(f"\nDay {day_index}:")
         for key, value in result.items():
             print(f"{key}: {value}")
-
 
 def main():
     num_iterations = SimulationConfig().ITERATIONS
@@ -202,9 +181,8 @@ def main():
         plot_results(results_list, num_iterations)
 
     print_individual_results(results_list)
-    # Export the results to a JSON file with a timestamp in the "data/" folder
+    # Export the results to the common JSON file and back up the previous one if it exists.
     export_results_to_json(results_list)
-
 
 if __name__ == "__main__":
     main()
