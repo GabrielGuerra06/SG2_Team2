@@ -1,7 +1,20 @@
+
+body {
+	overflow-y: hidden;
+}
+	
 #chart-area svg {
-	margin-left: auto;
-    margin-right: auto;
-    display: block;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#chart-area {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow-y: hidden;
+	height: 600px;
 }
 
 #logo {
